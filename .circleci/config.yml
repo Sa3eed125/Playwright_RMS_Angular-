@@ -7,7 +7,7 @@ orbs:
 executors:
   playwright-executor:
     docker:
-      - image: mcr.microsoft.com/playwright:v1.48.0-jammy
+      - image: mcr.microsoft.com/playwright:v1.57.0-jammy
     resource_class: medium
     working_directory: ~/playwright-rms-angular
 
