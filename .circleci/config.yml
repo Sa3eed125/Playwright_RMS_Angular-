@@ -65,12 +65,24 @@ jobs:
       TEST_PASSWORD: "123"
       TEST_REALM: Mobile_QC_RMS_ECM
       BASE_URL: https://csp.contellect.co.za
+      CI: "true"
+      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
       - run:
           name: Run Smoke Tests
-          command: npx playwright test tests/smoke/
+          command: |
+            npx playwright test tests/smoke/ --reporter=list --reporter=html
+          no_output_timeout: 5m
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results-smoke
+      - store_artifacts:
+          path: playwright-report
+          destination: playwright-report-smoke
 
 workflows:
   version: 2
