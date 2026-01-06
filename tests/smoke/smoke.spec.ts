@@ -19,7 +19,7 @@ test.describe('Smoke Tests', () => {
     });
     
     // Perform login
-    await loginPage.login(loginData.email, loginData.password, loginData.realm);
+    await loginPage.login(process.env.TEST_EMAIL || '', process.env.TEST_PASSWORD || '', process.env.TEST_REALM || '');
     
     // Verify successful login by checking URL contains expected path
     await expect(page).toHaveURL(/repository|dashboard|home/i, { timeout: 30000 });

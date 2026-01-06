@@ -58,7 +58,6 @@ jobs:
           path: playwright-report
           destination: playwright-report
 
-
 workflows:
   version: 2
   playwright-rms-test-suite:

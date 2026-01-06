@@ -37,8 +37,8 @@ export class LoginPage {
     }
 
     async navigate() {
-        console.log('Navigating to:', loginData.baseURL);
-        await this.page.goto(loginData.baseURL, { 
+        console.log('Navigating to:', process.env.BASE_URL);
+        await this.page.goto(process.env.BASE_URL || '', { 
             timeout: env.timeout,
             waitUntil: 'domcontentloaded'
         });

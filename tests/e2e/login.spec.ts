@@ -14,18 +14,20 @@ test.describe('Login Tests', () => {
   });
   // Full Flow Tests
   test('should complete full login flow Successfully', async ({ page }) => {
-    await loginPage.login(loginData.email, loginData.password, loginData.realm);
-    await page.waitForTimeout(3000);
-    // assertion on url 
-    await expect(page).toHaveURL(/.*repository.*/i);
+    await loginPage.login(loginData.email!, loginData.password!, loginData.realm);
+    
+    // Wait for authentication to complete and redirect to repository
+    await page.waitForURL(/repository|dashboard|home/i, { timeout: 30000 });
+    
+    // Verify we reached the expected page
+    await expect(page).toHaveURL(/repository|dashboard|home/i);
     console.log('Login completed. Current URL:', page.url());
-
   });
 
   // Email Input Step Tests
   test('should navigate to password input when valid email is entered', async ({ page }) => {
 
-    await loginPage.login(loginData.email, loginData.password, loginData.realm);
+    await loginPage.login(loginData.email!, loginData.password!, loginData.realm);
 
     // Add assertion to verify successful login
     await page.waitForTimeout(2000);
@@ -60,16 +62,16 @@ test.describe('Login Tests', () => {
 
   // Realm Selection Tests (for users with multiple realms)
   test('should display realm dropdown when email is registered on multiple realms', async ({ page }) => {
-    await loginPage.fillEmail(loginData.email);
+    await loginPage.fillEmail(process.env.TEST_EMAIL || '');
     await loginPage.clickLoginButton();
     await page.waitForTimeout(1000);
     await expect(loginPage.realmDropdown).toBeVisible();
   });
 
   test('should navigate to password input after selecting realm', async ({ page }) => {
-    await loginPage.fillEmail(loginData.email);
+    await loginPage.fillEmail(process.env.TEST_EMAIL || '');
     await loginPage.clickLoginButton();
-    await loginPage.selectRealm(loginData.realm);
+    await loginPage.selectRealm(process.env.TEST_REALM || '');
     await loginPage.clickLoginButton();
     await expect(loginPage.passwordInput).toBeVisible();
   });
