@@ -35,20 +35,13 @@ jobs:
 
   run-e2e-tests:
     executor: playwright-executor
-    parallelism: 3
-    environment:
-      TEST_EMAIL: saied.mohamed@contellect.com
-      TEST_PASSWORD: "123"
-      TEST_REALM: Mobile_QC_RMS_ECM
-      BASE_URL: https://csp.contellect.co.za
+    parallelism: 1    # sequential execution → browser واحد في headless=false
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
       - run:
           name: Run E2E Tests
-          command: |
-            SHARD="$((${CIRCLE_NODE_INDEX} + 1))"
-            npx playwright test tests/e2e/ --shard=${SHARD}/${CIRCLE_NODE_TOTAL}
+          command: npx playwright test tests/e2e/
       - store_test_results:
           path: test-results
       - store_artifacts:
@@ -57,7 +50,6 @@ jobs:
       - store_artifacts:
           path: playwright-report
           destination: playwright-report
-
 
 workflows:
   version: 2
