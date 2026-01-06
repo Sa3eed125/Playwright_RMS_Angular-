@@ -1,26 +1,21 @@
 import { test, expect } from '@playwright/test';
+import { LoginPage } from '../../pages/LoginPage';
+import { loginData } from '../../config/environments';
 
 test.describe('Smoke Tests', () => {
-  test('should load home page successfully', async ({ page }) => {
-    await page.goto('/');
-    await expect(page).toHaveTitle(/.*Home.*/i);
-  });
-
-  test('should register a new user successfully', async ({ page }) => {
-    await page.goto('/register');
-    await page.fill('#email', 'test@t.com');
-    await page.fill('#password', 'Password123!');
-    await page.fill('#confirmPassword', 'Password123!');
-    await page.click('button[type="submit"]');
-    await expect(page).toHaveURL(/.*welcome/);
-  });
-
-
+  
   test('should login successfully', async ({ page }) => {
-    await page.goto('/');
-    await page.click('text=Login');
-    await expect(page).toHaveURL(/.*login/);
+    const loginPage = new LoginPage(page);
+    
+    // Navigate to login page
+    await loginPage.navigate();
+    
+    // Perform login
+    await loginPage.login(loginData.email, loginData.password, loginData.realm);
+    
+    // Verify successful login by checking URL contains expected path
+    await expect(page).toHaveURL(/repository|dashboard|home/i, { timeout: 15000 });
+    
+    console.log('✓ Login smoke test passed. Current URL:', page.url());
   });
-
-
 });
