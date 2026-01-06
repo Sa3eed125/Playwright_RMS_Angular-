@@ -18,13 +18,13 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - npm-deps-v1-{{ checksum "package-lock.json" }}
+            - npm-deps-v1-{{ checksum "package.json" }}
             - npm-deps-v1-
       - run:
           name: Install Dependencies
-          command: npm ci
+          command: npm install
       - save_cache:
-          key: npm-deps-v1-{{ checksum "package-lock.json" }}
+          key: npm-deps-v1-{{ checksum "package.json" }}
           paths:
             - ~/.npm
             - node_modules
