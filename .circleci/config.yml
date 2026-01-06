@@ -70,22 +70,6 @@ jobs:
           path: playwright-report
           destination: playwright-report-smoke
 
-  generate-reports:
-    executor: playwright-executor
-    steps:
-      - attach_workspace:
-          at: ~/playwright-rms-angular
-      - run:
-          name: Generate Enhanced HTML Report
-          command: |
-            npx playwright test --reporter=./custom-reporter.ts || true
-      - store_artifacts:
-          path: playwright-report/enhanced-report.html
-          destination: enhanced-report.html
-      - store_artifacts:
-          path: playwright-report
-          destination: final-report
-
 workflows:
   version: 2
   playwright-rms-test-suite:
@@ -97,9 +81,6 @@ workflows:
       - run-e2e-tests:
           requires:
             - run-smoke-tests
-      - generate-reports:
-          requires:
-            - run-e2e-tests
 
   nightly-tests:
     triggers:
@@ -115,6 +96,3 @@ workflows:
       - run-e2e-tests:
           requires:
             - install-dependencies
-      - generate-reports:
-          requires:
-            - run-e2e-tests
