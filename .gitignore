@@ -1,0 +1,104 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Test results and reports
+test-results/
+test-results.json
+playwright-report/
+enhanced-report.html
+blob-report/
+playwright/.cache/
+playwright/.auth/
+coverage/
+.nyc_output/
+
+# Screenshots and videos
+screenshots/
+videos/
+*.png
+*.jpg
+*.jpeg
+*.mp4
+*.webm
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+environments.ts
+# IDE and editors
+.vscode/
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.iml
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Build output
+dist/
+build/
+out/
+.next/
+.nuxt/
+.cache/
+.temp/
+.tmp/
+
+# TypeScript
+*.tsbuildinfo
+*.tsbuildinfo.*
+
+# Debug
+.vscode-test
+debug.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# Config files with sensitive data
+config/local.ts
+config/secrets.ts
+
+# Backup files
+*.bak
+*.backup
+*~.nib
+
+# Misc
+.eslintcache
+.stylelintcache
