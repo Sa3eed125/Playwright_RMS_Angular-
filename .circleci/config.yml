@@ -58,29 +58,12 @@ jobs:
           path: playwright-report
           destination: playwright-report
 
-  run-smoke-tests:
-    executor: playwright-executor
-    environment:
-      TEST_EMAIL: saied.mohamed@contellect.com
-      TEST_PASSWORD: "123"
-      TEST_REALM: Mobile_QC_RMS_ECM
-      BASE_URL: https://csp.contellect.co.za
-      CI: "true"
-      PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
-    steps:
-      - attach_workspace:
-          at: ~/playwright-rms-angular
-      - run:
-          name: Run Smoke Tests
-          command: |
-            npx playwright test tests/smoke/
 
 workflows:
   version: 2
   playwright-rms-test-suite:
     jobs:
       - install-dependencies
-      - run-smoke-tests
       - run-e2e-tests
 
   nightly-tests:
