@@ -1,0 +1,17 @@
+# Code Owners for Playwright RMS Angular Project
+# These owners will be automatically requested for review when someone opens a pull request
+
+# Global owners - will be requested for review on all files
+* @Sa3eed125
+
+# Specific file type owners
+*.ts @Sa3eed125
+*.spec.ts @Sa3eed125
+
+# Configuration files
+playwright.config.ts @Sa3eed125
+.circleci/config.yml @Sa3eed125
+
+# Test directories
+/tests/ @Sa3eed125
+/pages/ @Sa3eed125
