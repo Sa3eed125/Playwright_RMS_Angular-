@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './tests',
-  
+
   /* Run tests in files in parallel */
   fullyParallel: false,  // Disable full parallelism to avoid test interference
 
@@ -18,7 +18,6 @@ export default defineConfig({
 
   // Reporter configuration - HTML report updates automatically
   reporter: [
-    ['./custom-reporter.ts'], // Enhanced custom HTML reporter
     [
       'html',
       {
