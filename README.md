@@ -1,6 +1,4 @@
-
-circleci/DLLwkL1CoAZzRg2SSVD89o
-
+[![CircleCI](https://dl.circleci.com/status-badge/img/circleci/DLLwkL1CoAZzRg2SSVD89o/BzX2Lsg6PXVq4JMjDPqFVa/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/DLLwkL1CoAZzRg2SSVD89o/BzX2Lsg6PXVq4JMjDPqFVa/tree/main)
 # Playwright RMS Angular - Automation Framework
 
 A comprehensive Playwright automation framework with TypeScript support for E2E, API, and smoke testing.
