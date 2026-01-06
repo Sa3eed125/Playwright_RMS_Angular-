@@ -1,5 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
-import { getEnvironment } from '../config/environments';
+import { getEnvironment, loginData } from '../config/environments';
 
 const env = getEnvironment();
 
@@ -37,8 +37,12 @@ export class LoginPage {
     }
 
     async navigate() {
-        await this.page.goto(env.baseURL, { timeout: env.timeout });
-        await this.page.waitForLoadState('domcontentloaded');
+        console.log('Navigating to:', loginData.baseURL);
+        await this.page.goto(loginData.baseURL, { 
+            timeout: env.timeout,
+            waitUntil: 'domcontentloaded'
+        });
+        console.log('Page loaded. Current URL:', this.page.url());
     }
 
     async fillEmail(email: string) {
