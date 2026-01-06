@@ -71,14 +71,6 @@ jobs:
       - run:
           name: Run Smoke Tests
           command: npx playwright test tests/smoke/
-      - store_test_results:
-          path: test-results
-      - store_artifacts:
-          path: test-results
-          destination: test-results-smoke
-      - store_artifacts:
-          path: playwright-report
-          destination: playwright-report-smoke
 
 workflows:
   version: 2
