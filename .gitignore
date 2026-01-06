@@ -32,7 +32,7 @@ videos/
 .env.development.local
 .env.test.local
 .env.production.local
-environments.ts
+# environments.ts should be committed for CI/CD
 # IDE and editors
 .vscode/
 !.vscode/extensions.json

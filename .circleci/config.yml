@@ -36,6 +36,11 @@ jobs:
   run-e2e-tests:
     executor: playwright-executor
     parallelism: 3
+    environment:
+      TEST_EMAIL: saied.mohamed@contellect.com
+      TEST_PASSWORD: "123"
+      TEST_REALM: Mobile_QC_RMS_ECM
+      BASE_URL: https://csp.contellect.co.za
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
@@ -55,6 +60,11 @@ jobs:
 
   run-smoke-tests:
     executor: playwright-executor
+    environment:
+      TEST_EMAIL: saied.mohamed@contellect.com
+      TEST_PASSWORD: "123"
+      TEST_REALM: Mobile_QC_RMS_ECM
+      BASE_URL: https://csp.contellect.co.za
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
