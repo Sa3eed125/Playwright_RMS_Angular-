@@ -1,31 +1,120 @@
-# Use the latest 2.1 version of CircleCI pipeline process engine.
-# See: https://circleci.com/docs/reference/configuration-reference
 version: 2.1
 
-# Define a job to be invoked later in a workflow.
-# See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#jobs-overview & https://circleci.com/docs/reference/configuration-reference/#jobs
-jobs:
-  say-hello:
-    # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
-    # See: https://circleci.com/docs/guides/execution-managed/executor-intro/ & https://circleci.com/docs/reference/configuration-reference/#executor-job
+orbs:
+  node: circleci/node@5.2.0
+  browser-tools: circleci/browser-tools@1.4.8
+
+executors:
+  playwright-executor:
     docker:
-      # Specify the version you desire here
-      # See: https://circleci.com/developer/images/image/cimg/base
-      - image: cimg/base:current
+      - image: mcr.microsoft.com/playwright:v1.48.0-jammy
+    resource_class: medium
+    working_directory: ~/playwright-rms-angular
 
-    # Add steps to the job
-    # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#steps-overview & https://circleci.com/docs/reference/configuration-reference/#steps
+jobs:
+  install-dependencies:
+    executor: playwright-executor
     steps:
-      # Checkout the code as the first step.
       - checkout
+      - restore_cache:
+          keys:
+            - npm-deps-v1-{{ checksum "package-lock.json" }}
+            - npm-deps-v1-
       - run:
-          name: "Say hello"
-          command: "echo Hello, World!"
+          name: Install Dependencies
+          command: npm ci
+      - save_cache:
+          key: npm-deps-v1-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.npm
+            - node_modules
+      - persist_to_workspace:
+          root: ~/playwright-rms-angular
+          paths:
+            - .
 
-# Orchestrate jobs using workflows
-# See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
+  run-e2e-tests:
+    executor: playwright-executor
+    parallelism: 3
+    steps:
+      - attach_workspace:
+          at: ~/playwright-rms-angular
+      - run:
+          name: Run E2E Tests
+          command: |
+            SHARD="$((${CIRCLE_NODE_INDEX} + 1))"
+            npx playwright test tests/e2e/ --shard=${SHARD}/${CIRCLE_NODE_TOTAL}
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results
+      - store_artifacts:
+          path: playwright-report
+          destination: playwright-report
+
+  run-smoke-tests:
+    executor: playwright-executor
+    steps:
+      - attach_workspace:
+          at: ~/playwright-rms-angular
+      - run:
+          name: Run Smoke Tests
+          command: npx playwright test tests/smoke/
+      - store_test_results:
+          path: test-results
+      - store_artifacts:
+          path: test-results
+          destination: test-results-smoke
+      - store_artifacts:
+          path: playwright-report
+          destination: playwright-report-smoke
+
+  generate-reports:
+    executor: playwright-executor
+    steps:
+      - attach_workspace:
+          at: ~/playwright-rms-angular
+      - run:
+          name: Generate Enhanced HTML Report
+          command: |
+            npx playwright test --reporter=./custom-reporter.ts || true
+      - store_artifacts:
+          path: playwright-report/enhanced-report.html
+          destination: enhanced-report.html
+      - store_artifacts:
+          path: playwright-report
+          destination: final-report
+
 workflows:
-  say-hello-workflow: # This is the name of the workflow, feel free to change it to better match your workflow.
-    # Inside the workflow, you define the jobs you want to run.
+  version: 2
+  playwright-rms-test-suite:
     jobs:
-      - say-hello
+      - install-dependencies
+      - run-smoke-tests:
+          requires:
+            - install-dependencies
+      - run-e2e-tests:
+          requires:
+            - run-smoke-tests
+      - generate-reports:
+          requires:
+            - run-e2e-tests
+
+  nightly-tests:
+    triggers:
+      - schedule:
+          cron: "0 2 * * *"
+          filters:
+            branches:
+              only:
+                - main
+                - master
+    jobs:
+      - install-dependencies
+      - run-e2e-tests:
+          requires:
+            - install-dependencies
+      - generate-reports:
+          requires:
+            - run-e2e-tests
