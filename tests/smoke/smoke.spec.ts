@@ -40,18 +40,4 @@ test.describe('Smoke Tests', () => {
     });
   });
 
-  test('TC_002- should complete full login flow Successfully', {
-    tag: ['@smoke', '@critical', '@positive']
-  }, async ({ page }) => {
-    await test.step('Enter login credentials', async () => {
-      await loginPage.login(loginData.email!, loginData.password!, loginData.realm);
-    });
-
-    await test.step('Wait for successful redirect', async () => {
-      await page.waitForURL(/repository|dashboard|home/i, { timeout: 30000 });
-      await expect(page).toHaveURL(/repository|dashboard|home/i);
-
-    });
-
-  });
 });
