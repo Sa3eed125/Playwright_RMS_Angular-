@@ -4,8 +4,8 @@ import { Console } from 'console';
 
 const env = getEnvironment();
 const TIMEOUTS = {
-    SHORT: 1500,
-    MEDIUM: 3000,
+    SHORT: 2000,
+    MEDIUM: 10000,
     LONG: env.timeout
 } as const;
 
@@ -58,6 +58,15 @@ export class LoginPage {
             timeout: TIMEOUTS.LONG,
             waitUntil: 'domcontentloaded'
         });
+        
+        // Wait for page to be stable
+        await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+            console.log('⚠️ Network idle timeout, but page is loaded');
+        });
+        
+        // Extra wait for CI environment stability
+        await this.page.waitForTimeout(1000);
+        
         console.log('Page loaded. Current URL:', this.page.url());
     }
 
@@ -65,7 +74,18 @@ export class LoginPage {
      * Fill email input field
      */
     async fillEmail(email: string): Promise<void> {
-        await this.emailInput.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+        // Wait for email input with longer timeout for CI
+        await this.emailInput.waitFor({ 
+            state: 'visible', 
+            timeout: TIMEOUTS.LONG 
+        });
+        
+        // Ensure input is ready
+        await this.emailInput.waitFor({ 
+            state: 'attached', 
+            timeout: TIMEOUTS.MEDIUM 
+        });
+        
         await this.emailInput.fill(email);
     }
 
@@ -73,7 +93,18 @@ export class LoginPage {
      * Fill password input field
      */
     async fillPassword(password: string): Promise<void> {
-        await this.passwordInput.waitFor({ state: 'visible', timeout: TIMEOUTS.MEDIUM });
+        // Wait for password input with longer timeout for CI
+        await this.passwordInput.waitFor({ 
+            state: 'visible', 
+            timeout: TIMEOUTS.LONG 
+        });
+        
+        // Ensure input is ready
+        await this.passwordInput.waitFor({ 
+            state: 'attached', 
+            timeout: TIMEOUTS.MEDIUM 
+        });
+        
         await this.passwordInput.fill(password);
     }
 

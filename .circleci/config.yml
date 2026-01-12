@@ -59,78 +59,9 @@ jobs:
           paths:
             - .
             - node_modules
-
-  run-e2e-tests:
-    executor: playwright-executor
-    parallelism: 3
-    environment:
-      TEST_EMAIL: saied.mohamed@contellect.com
-      TEST_PASSWORD: "123"
-      TEST_REALM: Mobile_QC_RMS_ECM
-      BASE_URL: https://csp.contellect.co.za
-      PLAYWRIGHT_JUNIT_OUTPUT_NAME: results.xml
-    steps:
-      - attach_workspace:
-          at: ~/playwright-rms-angular
-          
-      - run:
-          name: Create Test Results Directory
-          command: mkdir -p test-results screenshots
-          
-      - run:
-          name: Run Login Tests with Sharding
-          command: |
-            SHARD="$((${CIRCLE_NODE_INDEX} + 1))"
-            echo "Running shard ${SHARD} of ${CIRCLE_NODE_TOTAL}"
-            npx playwright test tests/e2e/login.spec.ts \
-              --shard=${SHARD}/${CIRCLE_NODE_TOTAL} \
-              --reporter=html,junit,list \
-              --retries=2 \
-              --workers=2
-          no_output_timeout: 15m
-          
-      - run:
-          name: Generate Test Summary
-          when: always
-          command: |
-            echo "Test execution completed"
-            if [ -f "test-results/results.xml" ]; then
-              echo "Test results found"
-              cat test-results/results.xml | grep -E "(tests=|failures=|errors=)" || true
-            fi
-            
-      - store_test_results:
-          path: test-results
-          
-      - store_artifacts:
-          path: test-results
-          destination: test-results
-          
-      - store_artifacts:
-          path: playwright-report
-          destination: playwright-report
-          
-      - store_artifacts:
-          path: test-results/screenshots
-          destination: screenshots
-          
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-          
-      - slack/notify:
-          event: pass
-          template: success_tagged_deploy_1
-
   run-login-tests:
     executor: playwright-executor
     parallelism: 2
-    environment:
-      TEST_EMAIL: saied.mohamed@contellect.com
-      TEST_PASSWORD: "123"
-      TEST_REALM: Mobile_QC_RMS_ECM
-      BASE_URL: https://csp.contellect.co.za
-      PLAYWRIGHT_JUNIT_OUTPUT_NAME: login-results.xml
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
@@ -264,17 +195,6 @@ workflows:
                 - develop
                 - /feature\/.*/
                 
-      - run-e2e-tests:
-          requires:
-            - install-dependencies
-            - lint-and-validate
-          filters:
-            branches:
-              only:
-                - main
-                - master
-                - develop
-
   # Nightly comprehensive test run
   nightly-tests:
     triggers:
@@ -297,23 +217,3 @@ workflows:
           requires:
             - install-dependencies
             - lint-and-validate
-      - run-e2e-tests:
-          requires:
-            - install-dependencies
-            - lint-and-validate
-
-  # Weekly full regression test
-  weekly-regression:
-    triggers:
-      - schedule:
-          cron: "0 3 * * 0"
-          filters:
-            branches:
-              only:
-                - main
-    jobs:
-      - install-dependencies
-      - run-e2e-tests:
-          requires:
-            - install-dependencies
-          context: production-tests
