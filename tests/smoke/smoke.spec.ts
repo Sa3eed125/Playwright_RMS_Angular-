@@ -51,7 +51,20 @@ test.describe('Smoke Tests', () => {
   }, async ({ page }) => {
     await test.step('Navigate to login page', async () => {
       await loginPage.navigate();
+      
+      // Additional stability checks for CI
       await page.waitForLoadState('domcontentloaded');
+      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {
+        console.log('⚠️ Network idle timeout in smoke test');
+      });
+      
+      // Wait for email input to be ready
+      await page.waitForSelector('#username', { 
+        state: 'visible', 
+        timeout: 15000 
+      }).catch(() => {
+        console.log('⚠️ Email input not found immediately');
+      });
     });
 
     await test.step('Perform login with valid credentials', async () => {
