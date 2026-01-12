@@ -122,13 +122,68 @@ jobs:
           event: pass
           template: success_tagged_deploy_1
 
-  run-smoke-tests:
+  run-login-tests:
     executor: playwright-executor
+    parallelism: 2
     environment:
       TEST_EMAIL: saied.mohamed@contellect.com
       TEST_PASSWORD: "123"
       TEST_REALM: Mobile_QC_RMS_ECM
       BASE_URL: https://csp.contellect.co.za
+      PLAYWRIGHT_JUNIT_OUTPUT_NAME: login-results.xml
+    steps:
+      - attach_workspace:
+          at: ~/playwright-rms-angular
+          
+      - run:
+          name: Create Test Results Directory
+          command: mkdir -p test-results screenshots
+          
+      - run:
+          name: Run Login Tests
+          command: |
+            echo "Running Login Test Suite"
+            npx playwright test tests/e2e/login.spec.ts \
+              --reporter=html,junit,list \
+              --retries=2 \
+              --workers=2
+          no_output_timeout: 15m
+          
+      - run:
+          name: Generate Login Test Summary
+          when: always
+          command: |
+            echo "Login tests execution completed"
+            if [ -f "test-results/login-results.xml" ]; then
+              echo "Test results found"
+              cat test-results/login-results.xml | grep -E "(tests=|failures=|errors=)" || true
+            fi
+            
+      - store_test_results:
+          path: test-results
+          
+      - store_artifacts:
+          path: test-results
+          destination: login-test-results
+          
+      - store_artifacts:
+          path: playwright-report
+          destination: login-playwright-report
+          
+      - store_artifacts:
+          path: test-results/screenshots
+          destination: login-screenshots
+          
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+          
+      - slack/notify:
+          event: pass
+          template: success_tagged_deploy_1
+
+  run-smoke-tests:
+    executor: playwright-executor
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
@@ -197,6 +252,18 @@ workflows:
                 - develop
                 - /feature\/.*/
                 
+      - run-login-tests:
+          requires:
+            - install-dependencies
+            - lint-and-validate
+          filters:
+            branches:
+              only:
+                - main
+                - master
+                - develop
+                - /feature\/.*/
+                
       - run-e2e-tests:
           requires:
             - install-dependencies
@@ -226,6 +293,10 @@ workflows:
       - run-smoke-tests:
           requires:
             - install-dependencies
+      - run-login-tests:
+          requires:
+            - install-dependencies
+            - lint-and-validate
       - run-e2e-tests:
           requires:
             - install-dependencies
