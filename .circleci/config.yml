@@ -2,8 +2,6 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.2.0
-  slack: circleci/slack@4.12.5
-
 executors:
   playwright-executor:
     docker:
@@ -90,22 +88,7 @@ jobs:
       - store_artifacts:
           path: test-results/screenshots
           destination: smoke-screenshots
-          
-      - slack/notify:
-          event: fail
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "❌ *Smoke Tests Failed* on branch: $CIRCLE_BRANCH"
-                  }
-                }
-              ]
-            }
-
+    
   run-login-tests:
     executor: playwright-executor
     steps:
@@ -150,36 +133,6 @@ jobs:
           path: test-results/screenshots
           destination: login-screenshots
           
-      - slack/notify:
-          event: fail
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "❌ *Login Tests Failed* on branch: $CIRCLE_BRANCH"
-                  }
-                }
-              ]
-            }
-          
-      - slack/notify:
-          event: pass
-          custom: |
-            {
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "✅ *All Tests Passed* on branch: $CIRCLE_BRANCH"
-                  }
-                }
-              ]
-            }
-
 workflows:
   version: 2
   
@@ -193,7 +146,7 @@ workflows:
               ignore:
                 - gh-pages
       
-      # Step 2: Run Smoke Tests in parallel with Login Tests
+      # Step 2: Run Smoke Tests first (health check)
       - run-smoke-tests:
           requires:
             - install-dependencies
@@ -205,9 +158,11 @@ workflows:
                 - develop
                 - /feature\/.*/
       
+      # Step 3: Run Login Tests only if Smoke Tests pass
       - run-login-tests:
           requires:
             - install-dependencies
+            - run-smoke-tests
           filters:
             branches:
               only:

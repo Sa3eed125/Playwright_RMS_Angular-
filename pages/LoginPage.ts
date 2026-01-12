@@ -59,51 +59,73 @@ export class LoginPage {
             waitUntil: 'domcontentloaded'
         });
         
-        // Wait for page to be stable
-        await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+        // Wait for page to be stable - increased timeout for CI
+        await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {
             console.log('⚠️ Network idle timeout, but page is loaded');
         });
         
         // Extra wait for CI environment stability
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForTimeout(2000);
+        
+        // Explicitly wait for login form to be ready
+        await this.page.waitForSelector('#username', { 
+            state: 'visible', 
+            timeout: 20000 
+        }).catch(() => {
+            console.log('⚠️ Username input not immediately visible');
+        });
         
         console.log('Page loaded. Current URL:', this.page.url());
     }
 
     /**
-     * Fill email input field
+     * Fill email input field with enhanced CI stability
      */
     async fillEmail(email: string): Promise<void> {
-        // Wait for email input with longer timeout for CI
+        // Wait for email input with extended timeout for CI (20 seconds)
         await this.emailInput.waitFor({ 
             state: 'visible', 
-            timeout: TIMEOUTS.LONG 
+            timeout: 20000
         });
         
-        // Ensure input is ready
+        // Ensure input is attached and enabled
         await this.emailInput.waitFor({ 
             state: 'attached', 
             timeout: TIMEOUTS.MEDIUM 
         });
+        
+        // Additional check: ensure element is enabled
+        const isEnabled = await this.emailInput.isEnabled();
+        if (!isEnabled) {
+            console.log('⚠️ Email input is not enabled, waiting...');
+            await this.page.waitForTimeout(1000);
+        }
         
         await this.emailInput.fill(email);
     }
 
     /**
-     * Fill password input field
+     * Fill password input field with enhanced CI stability
      */
     async fillPassword(password: string): Promise<void> {
-        // Wait for password input with longer timeout for CI
+        // Wait for password input with extended timeout for CI (20 seconds)
         await this.passwordInput.waitFor({ 
             state: 'visible', 
-            timeout: TIMEOUTS.LONG 
+            timeout: 20000
         });
         
-        // Ensure input is ready
+        // Ensure input is attached and enabled
         await this.passwordInput.waitFor({ 
             state: 'attached', 
             timeout: TIMEOUTS.MEDIUM 
         });
+        
+        // Additional check: ensure element is enabled
+        const isEnabled = await this.passwordInput.isEnabled();
+        if (!isEnabled) {
+            console.log('⚠️ Password input is not enabled, waiting...');
+            await this.page.waitForTimeout(1000);
+        }
         
         await this.passwordInput.fill(password);
     }
