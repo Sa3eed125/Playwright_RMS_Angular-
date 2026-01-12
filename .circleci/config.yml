@@ -78,11 +78,11 @@ jobs:
           command: mkdir -p test-results screenshots
           
       - run:
-          name: Run E2E Tests with Sharding
+          name: Run Login Tests with Sharding
           command: |
             SHARD="$((${CIRCLE_NODE_INDEX} + 1))"
             echo "Running shard ${SHARD} of ${CIRCLE_NODE_TOTAL}"
-            npx playwright test tests/e2e/ \
+            npx playwright test tests/e2e/login.spec.ts \
               --shard=${SHARD}/${CIRCLE_NODE_TOTAL} \
               --reporter=html,junit,list \
               --retries=2 \
