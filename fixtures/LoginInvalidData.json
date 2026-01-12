@@ -1,0 +1,58 @@
+{
+  "invalidEmails": [
+    {
+      "email": "test",
+      "description": "Missing domain",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "test@",
+      "description": "Missing domain name" ,
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "test@gmail",
+      "description": "Missing TLD",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "@gmail.com",
+      "description": "Missing username",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "test@@gmail.com",
+      "description": "Double @ symbol",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "test@gmail..com",
+      "description": "Double dot in domain",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": "invalid email",
+      "description": "Contains spaces",
+      "errorMessage": "Invalid username or email."
+    },
+    {
+      "email": " ",
+      "description": "Empty space only",
+      "errorMessage": "Invalid username or email."
+
+    }
+  ],
+  "invalidPasswords": [
+    {
+      "password": "",
+      "description": "Empty string",
+      "errorMessage": "Invalid password."
+    },
+    {
+      "password": "invalid",
+      "description": " invalid paswsword",
+      "errorMessage": "Invalid password."
+    }
+  
+  ]
+}

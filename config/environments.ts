@@ -1,7 +1,7 @@
 import 'dotenv/config';
 export function getEnvironment() {
     return {
-        timeout: parseInt(process.env.TEST_TIMEOUT || '30000', 10), // default to 30 seconds
+        timeout: parseInt(process.env.TEST_TIMEOUT || '10000', 10), // default to 10 seconds
     };
 }
 export const loginData = {
