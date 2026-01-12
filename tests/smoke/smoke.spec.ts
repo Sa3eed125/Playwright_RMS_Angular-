@@ -43,6 +43,18 @@ test.describe('Smoke Tests', () => {
   test('TC_002- should complete full login flow Successfully', {
     tag: ['@smoke', '@critical', '@positive']
   }, async ({ page }) => {
+    await test.step('Verify login page is ready', async () => {
+      // Ensure we're on a stable login page before attempting login
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+      console.log('Login page loaded, current URL:', page.url());
+      
+      // Take a screenshot for debugging if needed
+      await page.screenshot({ 
+        path: 'test-results/before-login-attempt.png', 
+        fullPage: true 
+      }).catch(() => console.log('Could not take screenshot'));
+    });
+    
     await test.step('Enter login credentials', async () => {
       await loginPage.login(loginData.email!, loginData.password!, loginData.realm);
     });
