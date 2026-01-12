@@ -27,8 +27,9 @@ export class LoginPage {
     constructor(page: Page) {
         this.page = page;
 
-        // Email Form Elements
-        this.emailInput = page.locator('#username');
+        // Email Form Elements - using flexible selector strategy
+        // Try multiple possible selectors for username/email input
+        this.emailInput = page.locator('#username, input[name="username"], input[type="email"], input[id*="email"], input[name*="email"], input[placeholder*="email" i], input[placeholder*="username" i]').first();
         this.loginHeader = page.locator('#kc-page-title');
 
 
@@ -56,54 +57,104 @@ export class LoginPage {
         console.log('Navigating to:', process.env.BASE_URL);
         await this.page.goto(process.env.BASE_URL || '', {
             timeout: TIMEOUTS.LONG,
-            waitUntil: 'domcontentloaded'
+            waitUntil: 'domcontentloaded' // Wait for DOM to be ready
         });
         
-        // Wait for page to be stable
-        await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-            console.log('⚠️ Network idle timeout, but page is loaded');
+        // Wait for network to be mostly idle (with fallback)
+        await this.page.waitForLoadState('networkidle', { 
+            timeout: 10000 
+        }).catch(() => {
+            console.log('⚠️ Network not fully idle, but continuing...');
         });
         
-        // Extra wait for CI environment stability
+        // Give Angular/React time to initialize if needed
         await this.page.waitForTimeout(1000);
         
         console.log('Page loaded. Current URL:', this.page.url());
     }
+        
+      
 
     /**
-     * Fill email input field
+     * Fill email input field with enhanced CI stability
      */
     async fillEmail(email: string): Promise<void> {
-        // Wait for email input with longer timeout for CI
-        await this.emailInput.waitFor({ 
-            state: 'visible', 
-            timeout: TIMEOUTS.LONG 
+        // Log current page state for debugging
+        console.log('Current URL:', this.page.url());
+        console.log('Page title:', await this.page.title().catch(() => 'Unable to get title'));
+        
+        // Check if we're on the expected login page
+        const currentUrl = this.page.url();
+        if (!currentUrl.match(/login|signin|auth|csp/i)) {
+            console.warn('⚠️ Warning: Current URL does not appear to be a login page:', currentUrl);
+        }
+        
+        // Wait for page to be in a stable state
+        await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 }).catch(() => {
+            console.log('⚠️ Page may still be loading...');
         });
         
-        // Ensure input is ready
+        // Check if username input exists in DOM (even if not visible)
+        const emailInputExists = await this.emailInput.count();
+        console.log('Email input count in DOM:', emailInputExists);
+        
+        if (emailInputExists === 0) {
+            console.error('❌ Email input (#username) not found in DOM');
+            // Try to find what login-related inputs exist
+            const allInputs = await this.page.locator('input').count();
+            console.log('Total input elements found:', allInputs);
+            
+            // List all input IDs for debugging
+            const inputIds = await this.page.locator('input[id]').evaluateAll(
+                (inputs) => inputs.map(input => input.id)
+            );
+            console.log('Available input IDs:', inputIds);
+        }
+        
+        // Wait for email input with extended timeout for CI (20 seconds)
+        await this.emailInput.waitFor({ 
+            state: 'visible', 
+            timeout: 20000
+        });
+        
+        // Ensure input is attached and enabled
         await this.emailInput.waitFor({ 
             state: 'attached', 
             timeout: TIMEOUTS.MEDIUM 
         });
+        
+        // Additional check: ensure element is enabled
+        const isEnabled = await this.emailInput.isEnabled();
+        if (!isEnabled) {
+            console.log('⚠️ Email input is not enabled, waiting...');
+            await this.page.waitForTimeout(1000);
+        }
         
         await this.emailInput.fill(email);
     }
 
     /**
-     * Fill password input field
+     * Fill password input field with enhanced CI stability
      */
     async fillPassword(password: string): Promise<void> {
-        // Wait for password input with longer timeout for CI
+        // Wait for password input with extended timeout for CI (20 seconds)
         await this.passwordInput.waitFor({ 
             state: 'visible', 
-            timeout: TIMEOUTS.LONG 
+            timeout: 20000
         });
         
-        // Ensure input is ready
+        // Ensure input is attached and enabled
         await this.passwordInput.waitFor({ 
             state: 'attached', 
             timeout: TIMEOUTS.MEDIUM 
         });
+        
+        // Additional check: ensure element is enabled
+        const isEnabled = await this.passwordInput.isEnabled();
+        if (!isEnabled) {
+            console.log('⚠️ Password input is not enabled, waiting...');
+            await this.page.waitForTimeout(1000);
+        }
         
         await this.passwordInput.fill(password);
     }

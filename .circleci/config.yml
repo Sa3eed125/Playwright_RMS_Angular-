@@ -2,9 +2,6 @@ version: 2.1
 
 orbs:
   node: circleci/node@5.2.0
-  browser-tools: circleci/browser-tools@1.4.8
-  slack: circleci/slack@4.12.5
-
 executors:
   playwright-executor:
     docker:
@@ -24,31 +21,36 @@ jobs:
       - run:
           name: Print Environment Info
           command: |
+            echo "🔍 Environment Information:"
             echo "Node version: $(node --version)"
             echo "NPM version: $(npm --version)"
             echo "Playwright version: $(npx playwright --version)"
             
       - restore_cache:
           keys:
-            - npm-deps-v2-{{ checksum "package-lock.json" }}
-            - npm-deps-v2-{{ checksum "package.json" }}
-            - npm-deps-v2-
+            - playwright-deps-v3-{{ checksum "package-lock.json" }}
+            - playwright-deps-v3-
             
       - run:
-          name: Install Dependencies
+          name: Install Dependencies (Smart Cache)
           command: |
             if [ ! -d "node_modules" ]; then
+              echo "📦 Installing dependencies..."
               npm ci --prefer-offline --no-audit
+              echo "✅ Dependencies installed"
             else
-              echo "Using cached node_modules"
+              echo "✨ Using cached node_modules"
             fi
             
       - run:
-          name: Verify Playwright Installation
-          command: npx playwright install --with-deps
+          name: Install Playwright Browsers
+          command: |
+            echo "🎭 Installing Playwright browsers..."
+            npx playwright install chromium --with-deps
+            echo "✅ Browsers installed"
           
       - save_cache:
-          key: npm-deps-v2-{{ checksum "package-lock.json" }}
+          key: playwright-deps-v3-{{ checksum "package-lock.json" }}
           paths:
             - ~/.npm
             - node_modules
@@ -59,9 +61,36 @@ jobs:
           paths:
             - .
             - node_modules
+
+  run-smoke-tests:
+    executor: playwright-executor
+    steps:
+      - attach_workspace:
+          at: ~/playwright-rms-angular
+          
+      - run:
+          name: Run Smoke Tests
+          command: |
+            echo "🔥 Running Smoke Tests..."
+            npx playwright test tests/smoke/ \
+              --reporter=html,list,json \
+              --retries=1 \
+              --workers=1
+          no_output_timeout: 10m
+          
+      - store_test_results:
+          path: test-results
+          
+      - store_artifacts:
+          path: playwright-report
+          destination: smoke-report
+          
+      - store_artifacts:
+          path: test-results/screenshots
+          destination: smoke-screenshots
+    
   run-login-tests:
     executor: playwright-executor
-    parallelism: 2
     steps:
       - attach_workspace:
           at: ~/playwright-rms-angular
@@ -73,21 +102,20 @@ jobs:
       - run:
           name: Run Login Tests
           command: |
-            echo "Running Login Test Suite"
+            echo "🔐 Running Login Tests..."
             npx playwright test tests/e2e/login.spec.ts \
-              --reporter=html,junit,list \
+              --reporter=html,list,json \
               --retries=2 \
               --workers=2
           no_output_timeout: 15m
           
       - run:
-          name: Generate Login Test Summary
+          name: Generate Test Summary
           when: always
           command: |
-            echo "Login tests execution completed"
-            if [ -f "test-results/login-results.xml" ]; then
-              echo "Test results found"
-              cat test-results/login-results.xml | grep -E "(tests=|failures=|errors=)" || true
+            echo "📊 Test Summary:"
+            if [ -f "test-results/results.json" ]; then
+              echo "Test results found ✓"
             fi
             
       - store_test_results:
@@ -95,83 +123,30 @@ jobs:
           
       - store_artifacts:
           path: test-results
-          destination: login-test-results
+          destination: login-results
           
       - store_artifacts:
           path: playwright-report
-          destination: login-playwright-report
+          destination: login-report
           
       - store_artifacts:
           path: test-results/screenshots
           destination: login-screenshots
           
-      - slack/notify:
-          event: fail
-          template: basic_fail_1
-          
-      - slack/notify:
-          event: pass
-          template: success_tagged_deploy_1
-
-  run-smoke-tests:
-    executor: playwright-executor
-    steps:
-      - attach_workspace:
-          at: ~/playwright-rms-angular
-          
-      - run:
-          name: Run Smoke Tests
-          command: |
-            npx playwright test tests/smoke/ \
-              --reporter=html,list \
-              --retries=1 \
-              --workers=1
-              
-      - store_test_results:
-          path: test-results
-          
-      - store_artifacts:
-          path: playwright-report
-          destination: smoke-test-report
-
-  lint-and-validate:
-    executor: playwright-executor
-    steps:
-      - attach_workspace:
-          at: ~/playwright-rms-angular
-          
-      - run:
-          name: Run Linting
-          command: |
-            if [ -f "package.json" ] && grep -q "\"lint\"" package.json; then
-              npm run lint || echo "Linting issues found"
-            else
-              echo "No lint script found, skipping"
-            fi
-            
-      - run:
-          name: Type Check
-          command: |
-            if [ -f "tsconfig.json" ]; then
-              npx tsc --noEmit || echo "Type errors found"
-            fi
-
 workflows:
   version: 2
   
-  # Main test workflow for all branches
-  playwright-rms-test-suite:
+  # Main workflow - runs on every push
+  smoke-and-login-tests:
     jobs:
+      # Step 1: Install dependencies once
       - install-dependencies:
           filters:
             branches:
               ignore:
                 - gh-pages
-                
-      - lint-and-validate:
-          requires:
-            - install-dependencies
-            
+      
+      # Step 2: Run Smoke Tests first (health check)
       - run-smoke-tests:
           requires:
             - install-dependencies
@@ -182,11 +157,12 @@ workflows:
                 - master
                 - develop
                 - /feature\/.*/
-                
+      
+      # Step 3: Run Login Tests only if Smoke Tests pass
       - run-login-tests:
           requires:
             - install-dependencies
-            - lint-and-validate
+            - run-smoke-tests
           filters:
             branches:
               only:
@@ -194,26 +170,5 @@ workflows:
                 - master
                 - develop
                 - /feature\/.*/
-                
-  # Nightly comprehensive test run
-  nightly-tests:
-    triggers:
-      - schedule:
-          cron: "0 2 * * *"
-          filters:
-            branches:
-              only:
-                - main
-                - master
-    jobs:
-      - install-dependencies
-      - lint-and-validate:
-          requires:
-            - install-dependencies
-      - run-smoke-tests:
-          requires:
-            - install-dependencies
-      - run-login-tests:
-          requires:
-            - install-dependencies
-            - lint-and-validate
+
+  

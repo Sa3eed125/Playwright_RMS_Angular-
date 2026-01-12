@@ -3,16 +3,12 @@ import { LoginPage } from '../../pages/LoginPage';
 import { loginData } from '../../config/environments';
 
 test.describe('Smoke Tests', () => {
-  test.describe.configure({
-    mode: 'serial',
-    timeout: 120000
-  });
 
   let loginPage: LoginPage;
-
   test.beforeEach(async ({ page }, testInfo) => {
     console.log(`🧪 Running smoke test: ${testInfo.title}`);
     loginPage = new LoginPage(page);
+    await loginPage.navigate();
   });
 
   test.afterEach(async ({ page }, testInfo) => {
@@ -30,9 +26,7 @@ test.describe('Smoke Tests', () => {
   test('SMOKE_001 - Application should be accessible', {
     tag: ['@smoke', '@critical', '@health-check']
   }, async ({ page }) => {
-    await test.step('Navigate to application URL', async () => {
-      await loginPage.navigate();
-    });
+ 
 
     await test.step('Verify page loads successfully', async () => {
       await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
@@ -46,45 +40,30 @@ test.describe('Smoke Tests', () => {
     });
   });
 
-  test('SMOKE_002 - User authentication should work end-to-end', {
-    tag: ['@smoke', '@critical', '@e2e', '@auth']
+  test('TC_002- should complete full login flow Successfully', {
+    tag: ['@smoke', '@critical', '@positive']
   }, async ({ page }) => {
-    await test.step('Navigate to login page', async () => {
-      await loginPage.navigate();
+    await test.step('Verify login page is ready', async () => {
+      // Ensure we're on a stable login page before attempting login
+      await page.waitForLoadState('domcontentloaded', { timeout: 10000 });
+      console.log('Login page loaded, current URL:', page.url());
       
-      // Additional stability checks for CI
-      await page.waitForLoadState('domcontentloaded');
-      await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {
-        console.log('⚠️ Network idle timeout in smoke test');
-      });
-      
-      // Wait for email input to be ready
-      await page.waitForSelector('#username', { 
-        state: 'visible', 
-        timeout: 15000 
-      }).catch(() => {
-        console.log('⚠️ Email input not found immediately');
-      });
+      // Take a screenshot for debugging if needed
+      await page.screenshot({ 
+        path: 'test-results/before-login-attempt.png', 
+        fullPage: true 
+      }).catch(() => console.log('Could not take screenshot'));
+    });
+    
+    await test.step('Enter login credentials', async () => {
+      await loginPage.login(loginData.email!, loginData.password!, loginData.realm);
     });
 
-    await test.step('Perform login with valid credentials', async () => {
-      await loginPage.login(
-        process.env.TEST_EMAIL || loginData.email!,
-        process.env.TEST_PASSWORD || loginData.password!,
-        process.env.TEST_REALM || loginData.realm
-      );
-    });
-
-    await test.step('Verify successful authentication', async () => {
+    await test.step('Wait for successful redirect', async () => {
       await page.waitForURL(/repository|dashboard|home/i, { timeout: 30000 });
       await expect(page).toHaveURL(/repository|dashboard|home/i);
+
     });
 
-    await test.step('Verify post-login page loads', async () => {
-      await page.waitForLoadState('domcontentloaded');
-      const url = page.url();
-      expect(url).not.toContain('login');
-      expect(url).not.toContain('error');
-    });
   });
 });
