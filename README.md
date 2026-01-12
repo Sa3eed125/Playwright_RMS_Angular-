@@ -1,6 +1,8 @@
 [![CircleCI](https://dl.circleci.com/status-badge/img/circleci/DLLwkL1CoAZzRg2SSVD89o/BzX2Lsg6PXVq4JMjDPqFVa/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/circleci/DLLwkL1CoAZzRg2SSVD89o/BzX2Lsg6PXVq4JMjDPqFVa/tree/main)
 # Playwright RMS Angular - Automation Framework
 
+![Smoke Tests](https://github.com/Sa3eed125/Playwright_RMS_Angular-/actions/workflows/playwright-smoke-tests.yml/badge.svg)
+
 A comprehensive Playwright automation framework with TypeScript support for E2E, API, and smoke testing.
 
 ## 🚀 Project Structure
@@ -136,7 +138,44 @@ npx playwright test tests/e2e/login.spec.ts
 npx playwright test --grep @smoke
 ```
 
-## 📊 View Test Reports
+## � CI/CD Integration
+
+### GitHub Actions
+
+This project includes automated CI/CD workflows that run on every pull request:
+
+**🔥 Smoke Tests Workflow** (`.github/workflows/playwright-smoke-tests.yml`)
+- Automatically runs on every PR to `main` or `develop`
+- Tests critical functionality before merging
+- Posts test results as PR comments
+- Uploads failure screenshots and videos
+
+**Setting up GitHub Secrets:**
+
+For the CI/CD pipeline to work, configure these secrets in your repository:
+
+```
+Settings → Secrets and variables → Actions → New repository secret
+```
+
+| Secret | Description |
+|--------|-------------|
+| `BASE_URL` | Application URL (e.g., `https://csp.contellect.co.za`) |
+| `TEST_EMAIL` | Test user email |
+| `TEST_PASSWORD` | Test user password |
+| `TEST_REALM` | Test realm/tenant name |
+
+**Quick setup via GitHub CLI:**
+```bash
+gh secret set BASE_URL -b "https://your-app.com"
+gh secret set TEST_EMAIL -b "test@example.com"
+gh secret set TEST_PASSWORD -b "your-password"
+gh secret set TEST_REALM -b "your-realm"
+```
+
+See [.github/workflows/README.md](.github/workflows/README.md) for detailed CI/CD documentation.
+
+## �📊 View Test Reports
 ✍️ Writing Tests
 
 ### Page Object Model (POM) Pattern
