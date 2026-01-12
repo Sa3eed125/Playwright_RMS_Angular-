@@ -110,11 +110,6 @@ The project uses `package-lock.json` to ensure consistent dependency versions ac
 - **actions/download-artifact@v4** - Download test artifacts
 - **actions/github-script@v7** - Run GitHub API scripts
 
-### CircleCI
-- **circleci/node@5.2.0** - Node.js orb for CircleCI
-- **circleci/browser-tools@1.4.8** - Browser tools orb
-- **mcr.microsoft.com/playwright:v1.48.0-jammy** - Playwright Docker image
-
 ## Custom Dependencies
 
 ### Custom Reporter
