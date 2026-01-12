@@ -8,7 +8,7 @@ A comprehensive Playwright automation framework with TypeScript support for E2E,
 ```
 Playwright_RMS_Angular/
 │
-├── .github/workflows/      # CI/CD workflows (GitHub Actions)
+├── .circleci/config.yml      # CI/CD workflows 
 ├── e2e/                    # Main test directory (configured in playwright.config.ts)
 ├── tests/                  # Additional test specifications
 │   ├── e2e/               # End-to-end tests
