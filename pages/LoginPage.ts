@@ -56,27 +56,10 @@ export class LoginPage {
         console.log('Navigating to:', process.env.BASE_URL);
         await this.page.goto(process.env.BASE_URL || '', {
             timeout: TIMEOUTS.LONG,
-            waitUntil: 'domcontentloaded'
         });
-        
-        // Wait for page to be stable - increased timeout for CI
-        await this.page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {
-            console.log('⚠️ Network idle timeout, but page is loaded');
-        });
-        
-        // Extra wait for CI environment stability
-        await this.page.waitForTimeout(2000);
-        
-        // Explicitly wait for login form to be ready
-        await this.page.waitForSelector('#username', { 
-            state: 'visible', 
-            timeout: 20000 
-        }).catch(() => {
-            console.log('⚠️ Username input not immediately visible');
-        });
-        
-        console.log('Page loaded. Current URL:', this.page.url());
     }
+        
+      
 
     /**
      * Fill email input field with enhanced CI stability

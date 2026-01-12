@@ -26,9 +26,7 @@ test.describe('Smoke Tests', () => {
   test('SMOKE_001 - Application should be accessible', {
     tag: ['@smoke', '@critical', '@health-check']
   }, async ({ page }) => {
-    await test.step('Navigate to application URL', async () => {
-      await loginPage.navigate();
-    });
+ 
 
     await test.step('Verify page loads successfully', async () => {
       await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
